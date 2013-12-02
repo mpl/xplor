@@ -1,7 +1,7 @@
 xplor
 =====
 
-Tree style (files) explorer for p9p acme.
+Tree style (files) [explorer for p9p acme] [1].
   
 If you're not an acme user, here's the easiest way to get acquainted: http://research.swtch.com/acme
 
@@ -24,3 +24,5 @@ DotDot redraws xplor with the root set as the parent directory.
 Hidden toggles displaying the hidden files/directories. It does not redraw the tree.
 
 Enjoy!
+
+[1]: https://bitbucket.org/mpl/xplor/raw/9844f21704b8/xplor.png        "screenshot"
