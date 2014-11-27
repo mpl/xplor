@@ -158,6 +158,9 @@ func printDirContents(dirpath string, depth int) (err error) {
 				line = dirflag + indents + v + "\n"
 			}
 			w.Write("data", []byte(line))
+			if fi.IsDir() && len(names) == 1 {
+				printDirContents(fullpath, depth+1)
+			}
 		}
 	}
 
