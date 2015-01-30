@@ -12,8 +12,8 @@ import (
 	"strings"
 
 	"bitbucket.org/fhs/goplumb/plumb"
-	"code.google.com/p/goplan9/plan9"
-	"code.google.com/p/goplan9/plan9/acme"
+	"9fans.net/go/plan9"
+	"9fans.net/go/acme"
 )
 
 var (
