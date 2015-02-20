@@ -51,12 +51,10 @@ func main() {
 	case 0:
 		root, _ = os.Getwd()
 	case 1:
-		temp := path.Clean(args[0])
-		if temp[0] != '/' {
+		root = path.Clean(args[0])
+		if root[0] != '/' {
 			cwd, _ := os.Getwd()
-			root = path.Join(cwd, temp)
-		} else {
-			root = temp
+			root = path.Join(cwd, root)
 		}
 	default:
 		usage()
@@ -111,10 +109,8 @@ func initWindow() error {
 
 	title := "xplor-" + root
 	w.Name(title)
-	tag := "DotDot Win Xplor Hidden"
-	w.Write("tag", []byte(tag))
-	err = printDirContents(root, 0)
-	return err
+	w.Write("tag", []byte("DotDot Win Xplor Hidden"))
+	return printDirContents(root, 0)
 }
 
 func printDirContents(dirpath string, depth int) (err error) {
