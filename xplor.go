@@ -11,9 +11,9 @@ import (
 	"sort"
 	"strings"
 
-	"bitbucket.org/fhs/goplumb/plumb"
-	"code.google.com/p/goplan9/plan9"
-	"code.google.com/p/goplan9/plan9/acme"
+	"9fans.net/go/acme"
+	"9fans.net/go/plan9"
+	"9fans.net/go/plumb"
 )
 
 var (
@@ -266,14 +266,16 @@ func onLook(charaddr string) {
 			return
 		}
 		defer port.Close()
-		port.Send(&plumb.Msg{
+		msg := &plumb.Message{
 			Src:  "xplor",
 			Dst:  "",
-			WDir: "/",
-			Kind: "text",
-			Attr: map[string]string{},
+			Dir:  "/",
+			Type: "text",
 			Data: []byte(fullpath),
-		})
+		}
+		if err := msg.Send(port); err != nil {
+			fmt.Fprintf(os.Stderr, err.Error())
+		}
 		return
 	}
 
