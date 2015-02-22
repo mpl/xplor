@@ -25,10 +25,11 @@ var (
 	dirflag   = []byte("+ ")
 	nodirflag = []byte("  ")
 	newLine = []byte("\n")
+	// scratch space reused by every readLine call. ok since we're never concurrent.
+	readLineBytes = make([]byte, 512)
 )
 
 const (
-	NBUF      = 512
 	INDENT    = "	"
 	BINDENT = '	'
 )
@@ -176,20 +177,21 @@ func printDirContents(dirpath string, depth int) (err error) {
 	return err
 }
 
+// the returned slice contents will be mutated by the next call to readLine
 func readLine(addr string) ([]byte, error) {
-	var b []byte = make([]byte, NBUF)
-	var err error = nil
-	err = w.Addr("%s", addr)
+	err := w.Addr("%s", addr)
 	if err != nil {
-		return b, err
+		return nil, err
 	}
-	n, err := w.Read("xdata", b)
-
+	n, err := w.Read("xdata", readLineBytes)
+	if err != nil {
+		return nil, err
+	}
 	// remove dirflag, if any
 	if n < 2 {
-		return b[0 : n-1], err
+		return readLineBytes[0 : n-1], nil
 	}
-	return b[2 : n-1], err
+	return readLineBytes[2 : n-1], nil
 }
 
 func getDepth(line []byte) (depth int, trimedline string) {
