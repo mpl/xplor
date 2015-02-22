@@ -3,6 +3,7 @@
 package main
 
 import (
+	"bytes"
 	"flag"
 	"fmt"
 	"os"
@@ -21,13 +22,15 @@ var (
 	w          *acme.Win
 	PLAN9      = os.Getenv("PLAN9")
 	showHidden bool
+	dirflag   = []byte("+ ")
+	nodirflag = []byte("  ")
+	newLine = []byte("\n")
 )
 
 const (
 	NBUF      = 512
 	INDENT    = "	"
-	dirflag   = "+ "
-	nodirflag = "  "
+	BINDENT = '	'
 )
 
 type dir struct {
@@ -113,58 +116,61 @@ func initWindow() error {
 	return printDirContents(root, 0)
 }
 
+
 func printDirContents(dirpath string, depth int) (err error) {
 	currentDir, err := os.OpenFile(dirpath, os.O_RDONLY, 0644)
-	line := ""
 	if err != nil {
 		return err
 	}
+	// TODO(mpl): use Walk instead? meh, not a fan.
 	names, err := currentDir.Readdirnames(-1)
 	if err != nil {
 		return err
 	}
 	currentDir.Close()
-
 	sort.Strings(names)
-	indents := ""
-	for i := 0; i < depth; i++ {
-		indents = indents + INDENT
+
+	indents := make([]byte, depth)
+	for k,_ := range indents {
+		indents[k] = BINDENT
 	}
-	fullpath := ""
+	var buf bytes.Buffer
 	var fi os.FileInfo
 	for _, v := range names {
-		line = nodirflag + indents + v + "\n"
-		isNotHidden := !strings.HasPrefix(v, ".")
-		if isNotHidden || showHidden {
-			fullpath = path.Join(dirpath, v)
-			fi, err = os.Stat(fullpath)
-			if err != nil {
-				_, ok := err.(*os.PathError)
-				if !ok {
-					panic("Not a *os.PathError")
-				}
-				if !os.IsNotExist(err) {
-					return err
-				}
-				// Skip (most likely) broken symlinks
-				fmt.Fprintf(os.Stderr, "%v\n", err.Error())
-				continue
-			}
-			if fi.IsDir() {
-				line = dirflag + indents + v + "\n"
-			}
-			w.Write("data", []byte(line))
-			if fi.IsDir() && len(names) == 1 {
-				printDirContents(fullpath, depth+1)
-			}
+		if strings.HasPrefix(v, ".") && !showHidden {
+			continue
 		}
+		fullpath := path.Join(dirpath, v)
+		fi, err = os.Stat(fullpath)
+		if err != nil {
+			if !os.IsNotExist(err) {
+				return err
+			}	
+			// Skip (most likely) broken symlinks
+			fmt.Fprintf(os.Stderr, "Skipping %v because %v\n", v, err)
+			continue
+		}
+		if fi.IsDir() {
+			buf.Write(dirflag)
+		} else {
+			buf.Write(nodirflag)
+		}
+		buf.Write(indents)
+		buf.Write([]byte(v))
+		buf.Write(newLine)
+		if fi.IsDir() && len(names) == 1 {
+			w.Write("data", buf.Bytes())
+			buf.Reset()
+			printDirContents(fullpath, depth+1)
+		}
+	}
+	if buf.Len() > 0 {
+		w.Write("data", buf.Bytes())
 	}
 
 	if depth == 0 {
 		//lame trick for now to dodge the out of range issue, until my address-foo gets better
-		w.Write("body", []byte("\n"))
-		w.Write("body", []byte("\n"))
-		w.Write("body", []byte("\n"))
+		w.Write("body", []byte("\n\n\n"))
 	}
 
 	return err
