@@ -113,8 +113,24 @@ func initWindow() error {
 	w.Name(title)
 	tag := "DotDot Win Xplor Hidden"
 	w.Write("tag", []byte(tag))
-	err = printDirContents(root, 0)
-	return err
+
+	if err := printDirContents(root, 0); err != nil {
+		return err
+	}
+	if err := setDumpCommand(root); err != nil {
+		return err
+	}
+	return nil
+}
+
+func setDumpCommand(dumpdir string) error {
+	if err := w.Ctl("dump xplor"); err != nil {
+		return err
+	}
+	if err := w.Ctl("dumpdir " + dumpdir); err != nil {
+		return err
+	}
+	return nil
 }
 
 func printDirContents(dirpath string, depth int) (err error) {
