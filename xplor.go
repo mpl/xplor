@@ -1,5 +1,6 @@
 // 2010 - Mathieu Lonjaret
 
+// The xplor program is an acme files explorer, tree style.
 package main
 
 import (
