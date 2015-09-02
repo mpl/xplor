@@ -1,5 +1,6 @@
 // 2010 - Mathieu Lonjaret
 
+// The xplor program is an acme files explorer, tree style.
 package main
 
 import (
@@ -22,15 +23,15 @@ var (
 	w          *acme.Win
 	PLAN9      = os.Getenv("PLAN9")
 	showHidden bool
-	dirflag   = []byte("+ ")
-	nodirflag = []byte("  ")
-	newLine = []byte("\n")
+	dirflag    = []byte("+ ")
+	nodirflag  = []byte("  ")
+	newLine    = []byte("\n")
 	// scratch space reused by every readLine call. ok since we're never concurrent.
 	readLineBytes = make([]byte, 512)
 )
 
 const (
-	INDENT    = "	"
+	INDENT  = "	"
 	BINDENT = '	'
 )
 
@@ -114,9 +115,24 @@ func initWindow() error {
 	title := "xplor-" + root
 	w.Name(title)
 	w.Write("tag", []byte("DotDot Win Xplor Hidden"))
-	return printDirContents(root, 0)
+	err = printDirContents(root, 0)
+	if err != nil {
+		return err
+	}
+
+	err = setDumpCommand(root)
+	return err
 }
 
+func setDumpCommand(dumpdir string) error {
+	if err := w.Ctl("dump xplor"); err != nil {
+		return err
+	}
+	if err := w.Ctl("dumpdir " + dumpdir); err != nil {
+		return err
+	}
+	return nil
+}
 
 func printDirContents(dirpath string, depth int) (err error) {
 	currentDir, err := os.OpenFile(dirpath, os.O_RDONLY, 0644)
@@ -132,7 +148,7 @@ func printDirContents(dirpath string, depth int) (err error) {
 	sort.Strings(names)
 
 	indents := make([]byte, depth)
-	for k,_ := range indents {
+	for k, _ := range indents {
 		indents[k] = BINDENT
 	}
 	var buf bytes.Buffer
@@ -146,7 +162,7 @@ func printDirContents(dirpath string, depth int) (err error) {
 		if err != nil {
 			if !os.IsNotExist(err) {
 				return err
-			}	
+			}
 			// Skip (most likely) broken symlinks
 			fmt.Fprintf(os.Stderr, "Skipping %v because %v\n", v, err)
 			continue
