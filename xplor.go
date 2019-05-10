@@ -9,7 +9,6 @@ import (
 	"os"
 	"os/exec"
 	"path"
-	"runtime"
 	"sort"
 	"strings"
 
@@ -223,11 +222,7 @@ func isFolded(charaddr string) (bool, error) {
 		return true, err
 	}
 	depth, _ := getDepth(b)
-	if runtime.GOOS == "darwin" {
-		addr = "#" + charaddr + "++-"
-	} else {
-		addr = "#" + charaddr + "+-"
-	}
+	addr = "#" + charaddr + "++-"
 	b, err = readLine(addr)
 	if err != nil {
 		return true, err
@@ -320,11 +315,7 @@ func onLook(charaddr string) {
 		}
 	} else {
 		// fold, ie delete lines below dir until we hit a dir of the same depth
-		if runtime.GOOS == "darwin" {
-			addr = "#" + charaddr + "++-"
-		} else {
-			addr = "#" + charaddr + "+-"
-		}
+		addr = "#" + charaddr + "++-"
 		nextdepth := depth + 1
 		nextline := 1
 		for nextdepth > depth {
@@ -343,11 +334,7 @@ func onLook(charaddr string) {
 			addr = "#" + charaddr + "+" + fmt.Sprint(nextline-1)
 		}
 		nextline--
-		if runtime.GOOS == "darwin" {
-			addr = "#" + charaddr + "++-#0,#" + charaddr + "+" + fmt.Sprint(nextline-2)
-		} else {
-			addr = "#" + charaddr + "+-#0,#" + charaddr + "+" + fmt.Sprint(nextline-2)
-		}
+		addr = "#" + charaddr + "++-#0,#" + charaddr + "+" + fmt.Sprint(nextline-2)
 		err = w.Addr("%s", addr)
 		if err != nil {
 			fmt.Fprint(os.Stderr, err.Error())
